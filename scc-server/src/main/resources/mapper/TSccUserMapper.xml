@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="scc.server.dao.TSccUserMapper">
+  <resultMap id="BaseResultMap" type="scc.server.dao.po.TSccUser">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="last_login_date" jdbcType="CHAR" property="lastLoginDate" />
+    <result column="last_login_time" jdbcType="CHAR" property="lastLoginTime" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_scc_user
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="scc.server.dao.po.TSccUser">
+    insert into t_scc_user (id, username, password, 
+      last_login_date, last_login_time)
+    values (#{id,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
+      #{lastLoginDate,jdbcType=CHAR}, #{lastLoginTime,jdbcType=CHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="scc.server.dao.po.TSccUser">
+    update t_scc_user
+    set username = #{username,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      last_login_date = #{lastLoginDate,jdbcType=CHAR},
+      last_login_time = #{lastLoginTime,jdbcType=CHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select id, username, password, last_login_date, last_login_time
+    from t_scc_user
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, username, password, last_login_date, last_login_time
+    from t_scc_user
+  </select>
+  <select id="selectByNameAndPassword" parameterType="scc.server.dao.po.TSccUser" resultMap="BaseResultMap">
+    select id, username, password, last_login_date, last_login_time
+    from t_scc_user
+    <where>
+      <if test="username != null">
+        username = #{username}
+      </if>
+      <if test="password != null">
+         and password = #{password}
+      </if>
+    </where>
+  </select>
+</mapper>

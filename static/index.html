@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.scc" rel="stylesheet"/>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.scc" rel="stylesheet"/>
+
+    <title>SCC配置中心</title>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <h1>SCC<small>玩具</small></h1>
+        </div>
+
+        <div class="col-md-3 col-md-offset-6 text-right">
+            <h2>{{userName}}</h2>
+            上次登陆时间： {{lastLoginTime}}
+        </div>
+    </div>
+
+    <hr/>
+
+    <div class="row">
+        <!--左侧导航栏-->
+        <div class="col-md-3">
+            <div style="height:20px"></div>
+            <select id="projname" title="选择子系统" class="selectpicker form-control"
+                    data-live-search="true" v-model="sysName"
+            @change="chooseSystem">
+                <option>订单子系统</option>
+                <option v-for="sysInfo in sysInfoArr">
+                    {{sysInfo.sysId}}:{{sysInfo.sysName}}
+                </option>
+            </select>
+
+            <div style="height:20px"></div>
+
+            <ul class="nav nav-pills nav-stacked">
+                <li v-for="(env,$index) in envs" @click="chooseEnv(env,$index)">
+                    <a>{{env}}</a>
+                </li>
+            </ul>
+        </div>
+
+        <!--右侧内容-->
+        <div class="col-md-9">
+            <h3>{{sysName}}
+            <small>{{}}</small>
+            </h3>
+           <div class="row">
+
+               <table class="table table-hover">
+                  <thead>
+                  <tr>
+                      <th>键</th>
+                      <th>值</th>
+                      <th>
+                          <button type="button" class="btn btn-primary btn-xs">新增</button>
+                      </th>
+                  </tr>
+                  </thead>
+                   <tr v-for="item in paramArr">
+                       <td>{{item.key}}</td>
+                       <td>{{item.value}}</td>
+                       <td>
+                           <button  class="btn btn-primary btn-xs"
+                           @click="">修改</button>
+                           <button  class="btn btn-danger btn-xs">删除</button>
+                       </td>
+                   </tr>
+                   <tr>
+                       <td>mysql.ip</td>
+                       <td>mysql.username</td>
+                       <td>
+                           <button  class="btn btn-primary btn-xs">修改</button>
+                           <button  class="btn btn-danger btn-xs">删除</button>
+                       </td>
+                   </tr>
+                   <tr>
+                       <td>mysql.ip</td>
+                       <td>mysql.username</td>
+                       <td>
+                           <button  class="btn btn-primary btn-xs">修改</button>
+                           <button  class="btn btn-danger btn-xs">删除</button>
+                       </td>
+                   </tr>
+                   <tr>
+                       <td>mysql.ip</td>
+                       <td>mysql.username</td>
+                       <td>
+                           <button  class="btn btn-primary btn-xs">修改</button>
+                           <button  class="btn btn-danger btn-xs">删除</button>
+                       </td>
+                   </tr>
+
+               </table>
+
+           </div>
+
+        </div>
+
+    </div>
+    <div class="modal fade scc-modal-sm" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true"/>
+                 <h4 class="modal-title">修改参数</h4>
+                </div>
+                <div class="modal-body">
+                    <h4>Key :{{modalParam.key}}</h4>
+                    <h4>Value :<input v-modal="modalParam.key"/></h4>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-xs" data-dismiss="modal"
+                            @click="updateParam(modalParam.id,modalParam.value)">
+                    提交更改
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+<script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/vue/dist/vue.js"/>
+<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el:".container",
+        data:{
+            userName:'测试用户',
+            lastLoginTime:'',
+            sysInfoArr:[],//{sysId:1,sysName:订单子系统}
+            sysName:'',
+            envName:'',
+            envs:['online','gray_a','gray_b','test_a','test_b'],
+            modalParam:{
+                id:'',
+                key:'',
+                value:''
+            }
+        },
+        methods:{
+            chooseEnv(item,index){
+                this.envName = item;
+                this.queryParam();
+            },
+            chooseSystem(){
+                this.queryParam();
+            },
+            updateParam(id,value){
+                let vm = this;
+                $.ajax({
+                    type:"POST",
+                    url:"http://localhost:8020/updateparm/"+id+"/"+value,
+                    data:{token:window.localStorage['scctoken']},
+                    success: function(msg){
+                        if(msg.status == "0"){
+                            //成功更新，使用重新查询来更新
+                            vm.queryParam();
+                        }
+                    },
+                    error:function(XmlHttpRequest,textStatus,thrownError){
+                        console.log(thrownError);
+                    }
+                });
+            },
+            queryParam(){
+                if(this.envName == '' || this.sysName == ''){
+                    return;
+                }
+                let vm = this;
+                $.ajax({
+                    type:"POST",
+                    url:http://localhost:8020/queryparaminfo/"+vm.sysName.split(",",1)
+                        +"/"+vm.envName,
+                    data:{token:window.localStorage['scctoken']},
+                    success: function(msg){
+                        if(msg.status == "0"){
+                            vm.paramArr = [];
+                            console.log(msg.data);
+                            let dataArr = JSON.parse(msg.data);
+                            dataArr.forEach(function(value,i){
+                                vm.$set(vm.paramArr,i,
+                                {'id':value.id,'key':value.key,'value':value.value()});
+                            })
+                        }
+                    },
+                    error:function(XmlHttpRequest,textStatus,thrownError){
+                        console.log(thrownError);
+                    }
+                })
+            },
+            //查询用户信息
+            queryForUserInfo(){
+                let vm = this;
+                $.ajax({
+                    type:"POST",
+                    url:"http://localhost:8020/queryuserinfo,
+                    data:{token:window.localStorage['scctoken']},
+                    success: function(msg){
+                        if(msg.status == "0"){
+                            let result = msg.data;
+                            vm.userName = result.userName;
+                            vm.lastLoginTime = result.lastLoginTime;
+                        }
+                    },
+                    error:function(XmlHttpRequest,textStatus,thrownError){
+                        console.log(thrownError);
+                    }
+                });
+            },
+            //查询子系统
+            queryForSystemNames(){
+                let vm = this;
+                $.ajax({
+                    type:"POST",
+                    url:"http://localhost:8020/querysysinfo,
+                    data:{token:window.localStorage['scctoken']},
+                    success: function(msg){//不考虑重新登陆
+                        if(msg.status == "0"){
+                            let result = msg.data;
+                            if($.isEmptyObject(result)){
+                                return;
+                            }
+
+                            vm.sysInfoArr = [];
+                            result.forEach(function(value,i)){
+                                vm.$set(vm.sysInfoArr,i,
+                                {'sysId':value,sysId,'sysName':value.sysName})
+                            }
+                        }
+                    },
+                    error:function(XmlHttpRequest,textStatus,thrownError){
+                        console.log(thrownError);
+                    }
+                });
+            },
+            mounted(){
+                //1、请求用户信息
+                this.queryForUserInfo();
+                //2、查询系统
+                this.queryForSystemNames();
+            }
+
+        }
+    })
+
+</script>
+</html>
